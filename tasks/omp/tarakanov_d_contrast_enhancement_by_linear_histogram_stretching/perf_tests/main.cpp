@@ -8,7 +8,7 @@
 
 #include "core/perf/include/perf.hpp"
 #include "core/task/include/task.hpp"
-#include "seq/tarakanov_d_contrast_enhancement_by_linear_histogram_stretching/include/ops_seq.hpp"
+#include "omp/tarakanov_d_contrast_enhancement_by_linear_histogram_stretching/include/ops_omp.hpp"
 
 TEST(tarakanov_d_linear_stretching_seq, test_pipeline_run) {
   constexpr size_t kCount = 500;
@@ -20,13 +20,13 @@ TEST(tarakanov_d_linear_stretching_seq, test_pipeline_run) {
     in[(i * kCount) + i] = 1;
   }
 
-  auto task_data_sequential = std::make_shared<ppc::core::TaskData>();
-  task_data_sequential->inputs.emplace_back(reinterpret_cast<uint8_t *>(in.data()));
-  task_data_sequential->inputs_count.emplace_back(in.size());
-  task_data_sequential->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
-  task_data_sequential->outputs_count.emplace_back(out.size());
+  auto task_data_parallel = std::make_shared<ppc::core::TaskData>();
+  task_data_parallel->inputs.emplace_back(reinterpret_cast<uint8_t *>(in.data()));
+  task_data_parallel->inputs_count.emplace_back(in.size());
+  task_data_parallel->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_parallel->outputs_count.emplace_back(out.size());
 
-  auto test_task_sequential = std::make_shared<tarakanov_d_linear_stretching::TaskSequential>(task_data_sequential);
+  auto test_task_parallel = std::make_shared<tarakanov_d_linear_stretching_omp::TaskParallel>(task_data_parallel);
 
   auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
   perf_attr->num_running = 10;
@@ -39,7 +39,7 @@ TEST(tarakanov_d_linear_stretching_seq, test_pipeline_run) {
 
   auto perf_results = std::make_shared<ppc::core::PerfResults>();
 
-  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task_sequential);
+  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task_parallel);
   perf_analyzer->PipelineRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
   ASSERT_EQ(in, out);
@@ -55,13 +55,13 @@ TEST(tarakanov_d_linear_stretching_seq, test_task_run) {
     in[(i * kCount) + i] = 1;
   }
 
-  auto task_data_sequential = std::make_shared<ppc::core::TaskData>();
-  task_data_sequential->inputs.emplace_back(reinterpret_cast<uint8_t *>(in.data()));
-  task_data_sequential->inputs_count.emplace_back(in.size());
-  task_data_sequential->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
-  task_data_sequential->outputs_count.emplace_back(out.size());
+  auto task_data_parallel = std::make_shared<ppc::core::TaskData>();
+  task_data_parallel->inputs.emplace_back(reinterpret_cast<uint8_t *>(in.data()));
+  task_data_parallel->inputs_count.emplace_back(in.size());
+  task_data_parallel->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_parallel->outputs_count.emplace_back(out.size());
 
-  auto test_task_sequential = std::make_shared<tarakanov_d_linear_stretching::TaskSequential>(task_data_sequential);
+  auto test_task_parallel = std::make_shared<tarakanov_d_linear_stretching_omp::TaskParallel>(task_data_parallel);
 
   auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
   perf_attr->num_running = 10;
@@ -74,7 +74,7 @@ TEST(tarakanov_d_linear_stretching_seq, test_task_run) {
 
   auto perf_results = std::make_shared<ppc::core::PerfResults>();
 
-  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task_sequential);
+  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task_parallel);
   perf_analyzer->TaskRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
   ASSERT_EQ(in, out);

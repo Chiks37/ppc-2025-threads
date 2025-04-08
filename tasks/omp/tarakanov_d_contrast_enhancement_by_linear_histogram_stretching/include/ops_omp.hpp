@@ -5,11 +5,11 @@
 
 #include "core/task/include/task.hpp"
 
-namespace tarakanov_d_linear_stretching {
+namespace tarakanov_d_linear_stretching_omp {
 
-class TaskSequential : public ppc::core::Task {
+class TaskParallel : public ppc::core::Task {
  public:
-  explicit TaskSequential(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
+  explicit TaskParallel(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
 
   bool PreProcessingImpl() override;
   bool ValidationImpl() override;
@@ -23,4 +23,4 @@ class TaskSequential : public ppc::core::Task {
   int rc_size_{};
 };
 
-}  // namespace tarakanov_d_linear_stretching
+}  // namespace tarakanov_d_linear_stretching_omp

@@ -1,11 +1,13 @@
-#include "seq/tarakanov_d_contrast_enhancement_by_linear_histogram_stretching/include/ops_seq.hpp"
+#include "omp/tarakanov_d_contrast_enhancement_by_linear_histogram_stretching/include/ops_omp.hpp"
+
+#include <omp.h>
 
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <vector>
 
-bool tarakanov_d_linear_stretching::TaskSequential::PreProcessingImpl() {
+bool tarakanov_d_linear_stretching_omp::TaskParallel::PreProcessingImpl() {
   unsigned int input_size = task_data->inputs_count[0];
   auto *in_ptr = reinterpret_cast<unsigned char *>(task_data->inputs[0]);
 
@@ -19,15 +21,16 @@ bool tarakanov_d_linear_stretching::TaskSequential::PreProcessingImpl() {
   return true;
 }
 
-bool tarakanov_d_linear_stretching::TaskSequential::ValidationImpl() {
+bool tarakanov_d_linear_stretching_omp::TaskParallel::ValidationImpl() {
   return task_data->inputs_count[0] == task_data->outputs_count[0];
 }
 
-bool tarakanov_d_linear_stretching::TaskSequential::RunImpl() {
+bool tarakanov_d_linear_stretching_omp::TaskParallel::RunImpl() {
   unsigned char min_val = 255;
   unsigned char max_val = 0;
   size_t total_pixels = inputImage_.size();
 
+#pragma omp parallel for reduction(min : min_val) reduction(max : max_val)
   for (size_t idx = 0; idx < total_pixels; ++idx) {
     unsigned char pixel = inputImage_[idx];
     min_val = std::min(pixel, min_val);
@@ -39,6 +42,7 @@ bool tarakanov_d_linear_stretching::TaskSequential::RunImpl() {
     return true;
   }
 
+#pragma omp parallel for
   for (size_t idx = 0; idx < total_pixels; ++idx) {
     unsigned char pixel = inputImage_[idx];
     auto new_pixel = static_cast<unsigned char>((pixel - min_val) * 255.0 / (max_val - min_val));
@@ -48,7 +52,7 @@ bool tarakanov_d_linear_stretching::TaskSequential::RunImpl() {
   return true;
 }
 
-bool tarakanov_d_linear_stretching::TaskSequential::PostProcessingImpl() {
+bool tarakanov_d_linear_stretching_omp::TaskParallel::PostProcessingImpl() {
   size_t total_elements = outputImage_.size();
   auto *out_ptr = reinterpret_cast<unsigned char *>(task_data->outputs[0]);
 
